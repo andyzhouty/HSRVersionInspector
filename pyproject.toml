@@ -1,0 +1,21 @@
+[project]
+name = "hsr-version-inspector"
+version = "0.1.0"
+readme = "README.md"
+authors = [
+    { name = "andyzhou", email = "andyforever0108@outlook.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "reportlab>=5.0.0",
+    "rich>=13.9.0",
+    "typer>=0.16.0",
+]
+
+[project.scripts]
+hvi = "hsr_version_inspector:main"
+tests = "hsr_version_inspector.test_runner:main"
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"
