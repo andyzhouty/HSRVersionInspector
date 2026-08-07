@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Any
 
 
-DATA_FILE = Path(__file__).resolve().parents[2] / "versionID.json"
+PACKAGE_DATA_FILE = Path(__file__).with_name("versionID.json")
+DATA_FILE = Path("versionID.json")
 
 
 @dataclass(frozen=True)
@@ -31,8 +32,10 @@ def _string_tuple(value: Any) -> tuple[str, ...]:
     return tuple(str(item) for item in value)
 
 
-def load_catalog(path: Path = DATA_FILE) -> tuple[VersionRecord, ...]:
+def load_catalog(path: Path | None = None) -> tuple[VersionRecord, ...]:
     """Load version metadata from a JSON catalog."""
+    if path is None:
+        path = DATA_FILE if DATA_FILE.is_file() else PACKAGE_DATA_FILE
     with path.open(encoding="utf-8") as file:
         payload = json.load(file)
 

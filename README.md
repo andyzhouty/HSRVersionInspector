@@ -16,6 +16,19 @@ uv sync
 uv run hvi
 ```
 
+To install the command for regular use from this project:
+
+```bash
+uv tool install .
+hvi
+```
+
+After publishing the package, the equivalent command is:
+
+```bash
+uv tool install hsr-version-inspector
+```
+
 Useful non-interactive commands:
 
 ```bash
