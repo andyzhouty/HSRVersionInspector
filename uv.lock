@@ -91,12 +91,25 @@ dependencies = [
     { name = "typer" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "hsr-version-inspector-test-runner" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "reportlab", specifier = ">=5.0.0" },
     { name = "rich", specifier = ">=13.9.0" },
     { name = "typer", specifier = ">=0.16.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "hsr-version-inspector-test-runner", directory = "tools/test-runner" }]
+
+[[package]]
+name = "hsr-version-inspector-test-runner"
+version = "0.1.0"
+source = { directory = "tools/test-runner" }
 
 [[package]]
 name = "markdown-it-py"

@@ -1,0 +1,11 @@
+[project]
+name = "hsr-version-inspector-test-runner"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[project.scripts]
+tests = "hsr_version_inspector_test_runner:main"
+
+[build-system]
+requires = ["uv_build>=0.9.26,<0.10.0"]
+build-backend = "uv_build"

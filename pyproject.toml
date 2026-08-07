@@ -14,7 +14,12 @@ dependencies = [
 
 [project.scripts]
 hvi = "hsr_version_inspector:main"
-tests = "hsr_version_inspector.test_runner:main"
+
+[dependency-groups]
+dev = ["hsr-version-inspector-test-runner"]
+
+[tool.uv.sources]
+hsr-version-inspector-test-runner = { path = "tools/test-runner" }
 
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]
