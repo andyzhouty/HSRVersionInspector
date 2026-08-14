@@ -13,10 +13,32 @@ from hsr_version_inspector.app import (
     _shared_text_markup,
     render_character,
 )
-from hsr_version_inspector.character import group_skill_entries, load_character
+from hsr_version_inspector.character import _load_traces, group_skill_entries, load_character
 
 
 class CharacterTests(unittest.TestCase):
+    def test_trace_values_between_zero_and_one_use_percent_format(self) -> None:
+        _, stats = _load_traces(
+            {
+                "ratio": {
+                    "1": {
+                        "point_type": 1,
+                        "status_add_list": [
+                            {"name": "小数", "property_type": "Unknown", "value": 0.25},
+                            {"name": "边界", "property_type": "Unknown", "value": 0.999},
+                            {"name": "零", "property_type": "Unknown", "value": 0},
+                            {"name": "整数", "property_type": "Unknown", "value": 1},
+                        ],
+                    }
+                }
+            }
+        )
+
+        self.assertEqual(
+            [(stat.name, stat.description) for stat in stats],
+            [("小数", "+25%"), ("边界", "+99.9%"), ("零", "+0"), ("整数", "+1")],
+        )
+
     def test_shared_text_markup_keeps_common_text_once(self) -> None:
         markup = _shared_text_markup(
             "造成伤害提高1%，持续2回合。",
@@ -55,6 +77,7 @@ class CharacterTests(unittest.TestCase):
     def test_load_character_expands_levels_and_removes_tags(self) -> None:
         payload = {
             "name": "Test character",
+            "base_type": "Shaman",
             "stats": {
                 "0": {
                     "hp_base": 100,
@@ -178,6 +201,7 @@ class CharacterTests(unittest.TestCase):
             view = load_character("4.4.51", "1512", Path(directory))
 
         self.assertEqual(view.level, 80)
+        self.assertEqual(view.path, "同谐")
         self.assertEqual(
             (view.base_stats.hp, view.base_stats.attack, view.base_stats.defence, view.base_stats.speed),
             ("1203.05", "601.52", "485.10", "98"),

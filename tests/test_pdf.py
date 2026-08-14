@@ -221,6 +221,7 @@ class PdfTests(unittest.TestCase):
             version="4.4.54",
             character_id="1512",
             name="角色",
+            path="同谐",
             level=80,
             base_stats=None,
             skills=(),

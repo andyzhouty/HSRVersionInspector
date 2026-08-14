@@ -320,7 +320,11 @@ def _markdown_buffs(lines: list[str], title: str, buffs: tuple) -> None:
 
 def _markdown_character(view: CharacterView, verbose: bool) -> list[str]:
     lines = [f"# {_markdown_text(view.name)}", ""]
-    summary = [("等级", f"{view.level}级"), ("角色编号", view.character_id)]
+    summary = [
+        ("等级", f"{view.level}级"),
+        ("角色编号", view.character_id),
+        ("命途", view.path),
+    ]
     if view.base_stats:
         summary.extend(
             [
@@ -928,6 +932,7 @@ def render_character(view: CharacterView, verbose: bool = False) -> None:
     summary.add_column(overflow="fold")
     summary.add_row("等级", f"{view.level}级")
     summary.add_row("角色编号", view.character_id)
+    summary.add_row("命途", view.path)
     if view.base_stats:
         summary.add_row("基础生命值", view.base_stats.hp)
         summary.add_row("基础攻击力", view.base_stats.attack)

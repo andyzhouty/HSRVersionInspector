@@ -1,35 +1,35 @@
 # HSRVersionInspector
 
-A Typer-based terminal UI for browsing the version metadata in `versionID.json`.
+一个基于 Typer 的终端界面，用于浏览 `versionID.json` 中的版本数据。
 
-## Requirements
+## 环境要求
 
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/)
 
-## Run
+## 使用
 
-Install the locked dependencies and launch the interactive browser:
+安装锁定的依赖并启动交互式浏览器：
 
 ```bash
 uv sync
 uv run hvi
 ```
 
-To install the command for regular use from this project:
+如果希望从当前项目安装命令供日常使用：
 
 ```bash
 uv tool install .
 hvi
 ```
 
-After publishing the package, the equivalent command is:
+发布软件包后，可以使用以下命令安装：
 
 ```bash
 uv tool install hsr-version-inspector
 ```
 
-Useful non-interactive commands:
+常用的非交互式命令：
 
 ```bash
 uv run hvi list
@@ -83,82 +83,55 @@ uv run hvi diff 4.4.51 4.4.54 --pdf > all-diff.pdf
 `download` 不使用这些选项。
 PDF 字体按微软雅黑、Noto Sans CJK、兼容中文字体的顺序查找，并会嵌入可用字体。
 
-The `show` command displays character and light-cone descriptions or selects
-the highest difficulty for the requested release and displays high-mode stage
-effects, enemy waves, and HP. Omitting a node displays all nodes for stage
-modes; character and light-cone indexes use the order in `versionID.json` and
-remain required. Character output uses level 80 with the configured skill
-levels and includes special effects. Light cones use level 80 and show all
-superimpositions with shared text rendered once. Supported peak
-shortcuts are `knight 1`, `knight 2`, `knight 3`, `king`, and `hard-king`.
-Maze output uses only the highest available layer and exposes its three nodes;
-the lower layers and the internal `pre_id` record are not displayed as extra
-nodes.
-`knight` without a version uses the latest release in the catalog. Monster
-base data is downloaded into `data/{version}/zh/monster/{id}.json` by
-`download`. The same command also downloads the source-driven enemy
-scaling tables into `data/config/`.
+`show` 命令用于显示角色和光锥描述，或选择指定版本的最高难度并显示高难度关卡效果、敌人波次和生命值。
+关卡模式省略节点时会显示全部节点；角色和光锥序号使用 `versionID.json` 中的数组顺序，并且仍然是必填的。
+角色默认显示 80 级、预设技能等级以及特殊效果。光锥默认显示 80 级的全部叠影数据，相同文本只显示一次。
+支持的异相快捷方式包括 `knight 1`、`knight 2`、`knight 3`、`king` 和 `hard-king`。
+混沌只显示最高难度层及其三个节点，不会额外显示较低难度层或内部的 `pre_id` 记录。
+省略 `knight` 的版本时，会使用目录中的最新版本。怪物基础数据由 `download` 下载到
+`data/{version}/zh/monster/{id}.json`，敌人倍率配置下载到 `data/config/`。
 
-`query` is the full-data lookup command. Without arguments, it asks for a
-mode and a real resource ID from `full.json`, then uses the newest version in
-the local catalog. It does not use a `versionID.json` array index: for example,
-`query character 1512` and `query lightcone 23063`. High-mode queries use
-`query 模式 数据ID [节点]`, such as `query story 2026 3`.
-For peak resources, use `peak`, `knight`, `king`, or `hard-king` as the mode.
-The original `show` and `diff` commands continue to use their existing
-version-scoped index and node behavior.
+`query` 命令用于按真实数据 ID 查询全量数据。省略参数时，会先选择模式，再输入 `full.json` 中的真实资源 ID，
+然后使用本地目录中的最新版本，不使用 `versionID.json` 的数组序号。例如：`query character 1512` 和
+`query lightcone 23063`。高难度模式的查询格式为 `query 模式 数据ID [节点]`，例如 `query story 2026 3`。
+异相资源可使用 `peak`、`knight`、`king` 或 `hard-king` 作为模式。
+原有的 `show` 和 `diff` 命令仍使用各自的版本范围、数组序号和节点规则。
 
-`diff` compares one mode between two different releases from the same
-`major.minor` version line. Supported data modes are `character`, `lightcone`,
-`maze`, `story`, `boss`, `peak`, `knight`, `king`, and `hard-king`; cross-line releases
-such as `4.4.54` and `4.5.51` are rejected. `lightcone 1` compares one
-light-cone, while omitting the index compares every light-cone in the list.
-High-mode comparisons use `peak` for all three knights plus king and hard-king.
-`knight` compares all three knights, while `knight 1/2/3` selects one knight.
-The legacy `story 1`, `story 2`, etc. form remains available for one story node.
-High-mode output compares effect descriptions and enemy HP, including phase HP
-and enemy counts.
-Character comparisons can use the character array index, for example
-`character 1`; omitting the index compares every character in the list.
-They compare expanded skill descriptions, 忆灵技能, traces, special
-effects, and eidolons.
+`diff` 命令用于比较同一 `major.minor` 版本线中的两个不同小版本。支持的模式包括 `character`、`lightcone`、
+`maze`、`story`、`boss`、`peak`、`knight`、`king` 和 `hard-king`；例如 `4.4.54` 与 `4.5.51` 这样的跨版本线
+比较会被拒绝。`lightcone 1` 用于比较一个光锥，省略序号时比较列表中的全部光锥。
+高难度比较中，`peak` 会比较三个骑士、王棋和绝境王棋；`knight` 比较三个骑士，`knight 1/2/3` 可单独选择一个骑士。
+旧版的 `story 1`、`story 2` 等格式仍可用于比较单个虚构节点。
+高难度输出会比较关卡效果和敌人生命值，包括阶段生命值与敌人数量。
+角色比较使用角色数组序号，例如 `character 1`；省略序号时比较列表中的全部角色，并比较展开后的技能、忆灵技能、行迹、
+特殊效果和星魂描述。
 
-`download` reads every `version` entry from `versionID.json`. It downloads the
-complete `full.json` resource set only for the newest release, while retaining
-only the `versionID.json` resources required by `show` and `diff` for older
-releases. After the download completes, redundant full-cache files from older
-versions are removed automatically. Run `hvi cleanup` to perform that local
-cleanup without downloading.
-Existing files are skipped so the command can be safely resumed after an
-interruption; resources that return HTTP 404 are reported and do not stop the
-remaining downloads. `download` uses 40 concurrent requests by default. Set
-`HVI_DOWNLOAD_WORKERS` to a value from 1 to 64 to tune this for the available
-network connection. Enemy HP is calculated from the downloaded
-`HardLevelGroup`, `EliteGroup`, and `InfiniteEliteGroup` tables rather than a
-version-specific constant.
+`download` 会读取 `versionID.json` 中的全部 `version` 项。它只为最新版本下载 `full.json` 覆盖的完整资源，
+旧版本则只保留 `show` 和 `diff` 所需的 `versionID.json` 资源。下载完成后，会自动删除旧版本中多余的全量缓存。
+运行 `hvi cleanup` 可以在不下载数据的情况下单独执行本地清理。
+已存在的文件会跳过，因此可以在中断后安全地继续下载；返回 HTTP 404 的资源会被记录，但不会中断其他下载。
+`download` 默认使用 40 路并行请求，可通过 `HVI_DOWNLOAD_WORKERS` 设置 1 到 64 之间的并发数。
+敌人生命值使用下载的 `HardLevelGroup`、`EliteGroup` 和 `InfiniteEliteGroup` 配置计算，而不是使用固定的版本系数。
 
-The downloaded `data/` directory is not included in the installed package.
-When running from the project directory, HVI uses that directory's `data/`
-folder. When running an installed `hvi` command elsewhere, it uses
-`~/.local/share/hsr-version-inspector/data` on Linux, the corresponding
-application data directory on Windows or macOS, and honors `HVI_DATA_DIR` when
-an explicit location is needed.
+下载得到的 `data/` 目录不会被打包进安装包。从项目目录运行时，HVI 使用项目目录下的 `data/`。
+从其他目录运行已安装的 `hvi` 命令时，Linux 默认使用 `~/.local/share/hsr-version-inspector/data`，
+Windows 或 macOS 使用对应的应用数据目录。如需指定其他位置，可设置 `HVI_DATA_DIR`。
 
-Run the tests with:
+运行测试：
 
 ```bash
 uv run tests
 ```
 
-## Layout
+## 项目结构
 
-- `src/hsr_version_inspector/app.py`: Typer commands and Rich terminal UI.
-- `src/hsr_version_inspector/boss.py`: Boss selection, HP calculation, and buff formatting.
-- `src/hsr_version_inspector/character.py`: Character skill, trace, effect, and eidolon parsing.
-- `src/hsr_version_inspector/lightcone.py`: Light-cone stats and superimposition parsing.
-- `src/hsr_version_inspector/highmode.py`: Peak/story high-difficulty parsing and HP calculation.
-- `src/hsr_version_inspector/scaling.py`: Enemy HP scaling table loading and formula.
-- `src/hsr_version_inspector/data.py`: JSON catalog loading and validation.
-- `src/hsr_version_inspector/download.py`: Resource URL generation and downloads.
-- `versionID.json`: default version metadata catalog.
-- `full.json`: complete resource IDs for `query` and `download`.
+- `src/hsr_version_inspector/app.py`：Typer 命令和 Rich 终端界面。
+- `src/hsr_version_inspector/boss.py`：首领选择、生命值计算和效果格式化。
+- `src/hsr_version_inspector/character.py`：角色技能、行迹、效果和星魂解析。
+- `src/hsr_version_inspector/lightcone.py`：光锥属性和叠影数据解析。
+- `src/hsr_version_inspector/highmode.py`：异相、虚构等高难度数据解析及生命值计算。
+- `src/hsr_version_inspector/scaling.py`：敌人生命值倍率表加载和计算公式。
+- `src/hsr_version_inspector/data.py`：JSON 目录加载和校验。
+- `src/hsr_version_inspector/download.py`：资源 URL 生成和下载。
+- `versionID.json`：默认版本元数据目录。
+- `full.json`：`query` 和 `download` 使用的完整资源 ID 目录。

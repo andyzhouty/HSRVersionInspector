@@ -932,7 +932,10 @@ class PdfRenderer:
         if has_previous_item:
             self.story.append(Spacer(1, CHARACTER_SPACING))
         self._resource_heading(view.name)
-        summary: list[tuple[object, ...]] = [("角色编号", view.character_id)]
+        summary: list[tuple[object, ...]] = [
+            ("角色编号", view.character_id),
+            ("命途", view.path),
+        ]
         if view.base_stats:
             summary.extend([
                 ("基础生命值", view.base_stats.hp), ("基础攻击力", view.base_stats.attack),

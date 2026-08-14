@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .lightcone import PATH_NAMES
 from .paths import DATA_DIR
 
 _PLACEHOLDER = re.compile(r"#(\d+)\[(i|f(\d+))\](%)?")
@@ -40,6 +41,7 @@ class CharacterView:
     version: str
     character_id: str
     name: str
+    path: str
     level: int
     base_stats: CharacterBaseStats | None
     skills: tuple[CharacterSkill, ...]
@@ -243,14 +245,7 @@ def _status_info(status: dict[str, Any]) -> tuple[str, float, bool, str] | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     property_type = str(status.get("property_type", ""))
-    is_percent = (
-        property_type.endswith("Ratio")
-        or property_type.endswith("RatioBase")
-        or property_type in {
-        "CriticalChanceBase",
-        "CriticalDamageBase",
-        }
-    )
+    is_percent = 0 < float(value) < 1
     return name, float(value), is_percent, property_type
 
 
@@ -398,6 +393,10 @@ def load_character(
         version=version,
         character_id=character_id,
         name=str(payload.get("name", character_id)),
+        path=PATH_NAMES.get(
+            str(payload.get("base_type", "")),
+            str(payload.get("base_type", "未知")),
+        ),
         level=80,
         base_stats=_load_base_stats(payload.get("stats"), 80),
         skills=_load_skills(payload.get("skills")),

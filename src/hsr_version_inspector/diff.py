@@ -46,6 +46,7 @@ _INTERNAL_DIFF_MODES = {*DIFF_MODES, "story"}
 MAX_STORED_CHANGES = 80
 MISSING = object()
 BASE_STAT_ORDER = {
+    "命途": -1,
     "生命值": 0,
     "攻击力": 1,
     "防御力": 2,
@@ -507,14 +508,16 @@ def _character_text_map(entries: tuple[Any, ...]) -> dict[str, str]:
 
 
 def _character_base_stat_map(view: CharacterView) -> dict[str, str]:
+    stats = {"命途": view.path}
     if view.base_stats is None:
-        return {}
-    return {
+        return stats
+    stats.update({
         "基础生命值": view.base_stats.hp,
         "基础攻击力": view.base_stats.attack,
         "基础防御力": view.base_stats.defence,
         "基础速度": view.base_stats.speed,
-    }
+    })
+    return stats
 
 
 def _character_eidolon_map(view: CharacterView) -> dict[str, str]:
@@ -598,7 +601,7 @@ def compare_character_versions(
     before = load_character(version_one, character_id_one, data_root)
     after = load_character(version_two, character_id_two, data_root)
     sections: list[CharacterSectionDiff] = []
-    if before.base_stats or after.base_stats:
+    if before.base_stats or after.base_stats or before.path != after.path:
         sections.append(
             _character_section(
                 "基础属性",
