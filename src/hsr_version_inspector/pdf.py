@@ -878,7 +878,7 @@ class PdfRenderer:
         if payload is None:
             self._box(
                 "数据不可用",
-                f"未找到本地数据：data/{version}/zh/{mode}/{resource_id}.json。请先运行 hvi download-all。",
+                f"未找到本地数据：data/{version}/zh/{mode}/{resource_id}.json。请先运行 hvi download。",
                 RED,
             )
             return

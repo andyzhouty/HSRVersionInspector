@@ -26,7 +26,7 @@ def _load_entries(path: Path) -> list[dict[str, Any]]:
             payload = json.load(file)
     except FileNotFoundError as error:
         raise FileNotFoundError(
-            f"缺少怪物倍率配置 {path}，请先运行 download-all。"
+            f"缺少怪物倍率配置 {path}，请先运行 download。"
         ) from error
     if not isinstance(payload, list):
         raise ValueError(f"配置文件 {path} 应为 JSON 数组。")

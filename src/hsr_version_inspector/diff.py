@@ -18,9 +18,8 @@ from .highmode import (
     load_story,
 )
 from .lightcone import LightConeView, load_lightcone
+from .paths import DATA_DIR
 
-
-DATA_DIR = Path("data")
 DIFF_MODES = (
     "character",
     "lightcone",

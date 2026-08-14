@@ -29,7 +29,7 @@ from .character import (
     skill_entry_title,
     skill_group_title,
 )
-from .data import VersionRecord, find_release, load_catalog
+from .data import FullCatalog, VersionRecord, find_release, latest_release, load_catalog, load_full_catalog
 from .diff import (
     DiffReport,
     CharacterChange,
@@ -59,7 +59,7 @@ from .diff import (
     tokenize_text_diff,
     tokenize_refinement_diff,
 )
-from .download import download_all
+from .download import cleanup_data, download_all
 from .highmode import (
     HighModeView,
     MazeView,
@@ -71,6 +71,7 @@ from .highmode import (
 )
 from .lightcone import LightConeView, load_lightcone
 from .pdf import PdfRenderer
+from .paths import DATA_DIR
 
 
 rich_utils.ARGUMENTS_PANEL_TITLE = "参数"
@@ -828,7 +829,7 @@ def render_catalog(catalog: tuple[VersionRecord, ...]) -> None:
 
 
 def _raw_resource_path(version: str, mode: str, resource_id: str) -> Path:
-    return Path("data") / version / "zh" / mode / f"{resource_id}.json"
+    return DATA_DIR / version / "zh" / mode / f"{resource_id}.json"
 
 
 def _load_raw_resource(
@@ -851,7 +852,7 @@ def _markdown_raw_resource(
 ) -> list[str]:
     lines = [f"# {_markdown_text(_mode_label(mode))}", "", f"- 版本：{version}", f"- 资源编号：{resource_id}"]
     if payload is None:
-        lines.extend(["", f"未找到本地数据：{_raw_resource_path(version, mode, resource_id)}。", "请先运行 `hvi download-all`。"])
+        lines.extend(["", f"未找到本地数据：{_raw_resource_path(version, mode, resource_id)}。", "请先运行 `hvi download`。"])
         return lines
     lines.extend(["", "```json", json.dumps(payload, ensure_ascii=False, indent=2), "```"])
     return lines
@@ -872,7 +873,7 @@ def render_raw_resource(
     if payload is None:
         body = (
             f"未找到本地数据：{_raw_resource_path(version, mode, resource_id)}。\n"
-            "请先运行 hvi download-all。"
+            "请先运行 hvi download。"
         )
     else:
         body = json.dumps(payload, ensure_ascii=False, indent=2)
@@ -1690,6 +1691,42 @@ def _pause_interactive_result() -> None:
     Prompt.ask("按回车返回主菜单", default="")
 
 
+def _query_mode_options() -> tuple[tuple[str, str], ...]:
+    return (
+        ("character", "角色"),
+        ("lightcone", "光锥"),
+        ("maze", "混沌"),
+        ("story", "虚构"),
+        ("boss", "末日"),
+        ("peak", "异相（全部）"),
+        ("knight", "骑士"),
+        ("king", "王棋"),
+        ("hard-king", "绝境"),
+    )
+
+
+def _query_resource_mode(mode: str) -> str:
+    return "peak" if mode in {"peak", "knight", "king", "hard-king"} else mode
+
+
+def _prompt_full_resource_id(full_catalog: FullCatalog, mode: str) -> int | None:
+    label = _mode_label(mode)
+    ids = full_catalog.resource_ids(mode)
+    if not ids:
+        console.print(f"[yellow]完整数据目录中没有{label}资源。[/yellow]")
+        return None
+    while True:
+        answer = Prompt.ask(
+            f"输入{label}数据 ID（{ids[0]} 至 {ids[-1]}，输入 q 返回）",
+            default="q",
+        )
+        if answer.lower() == "q":
+            return None
+        if answer.isdigit() and full_catalog.contains(mode, answer):
+            return int(answer)
+        console.print(f"[red]{label}数据 ID {answer!r} 不在 full.json 中。[/red]")
+
+
 def _show_mode_options(record: VersionRecord) -> tuple[tuple[str, str], ...]:
     options: list[tuple[str, str]] = []
     if record.character:
@@ -1968,6 +2005,85 @@ def _run_diff_wizard(
     _pause_interactive_result()
 
 
+def _run_query_wizard(
+    catalog: tuple[VersionRecord, ...],
+    mode: str | None = None,
+    resource_id: int | None = None,
+    node: int | None = None,
+    verbose: bool = False,
+) -> None:
+    if mode is None:
+        mode_index = _prompt_index("选择查询模式", _query_mode_options())
+        if mode_index is None:
+            return
+        mode = _query_mode_options()[mode_index - 1][0]
+    mode = mode.lower()
+    if mode not in {value for value, _ in _query_mode_options()}:
+        console.print(f"[red]不支持的查询模式 {mode}。[/red]")
+        return
+
+    full_catalog = _load_full_data()
+    resource_mode = _query_resource_mode(mode)
+    if resource_id is None:
+        resource_id = _prompt_full_resource_id(full_catalog, resource_mode)
+        if resource_id is None:
+            return
+
+    version = latest_release(catalog)
+    console.print(f"[dim]使用最新版本 {version}。[/dim]")
+
+    if mode == "character" and not verbose:
+        verbose_index = _prompt_index(
+            "是否显示特殊效果",
+            (("no", "不显示"), ("yes", "显示")),
+        )
+        if verbose_index is None:
+            return
+        verbose = verbose_index == 2
+    elif mode == "boss" and node is None:
+        nodes = available_boss_nodes(version, str(resource_id))
+        index = _prompt_index(
+            "选择末日节点",
+            tuple((str(item), f"节点 {item}") for item in nodes),
+            all_label="全部节点",
+        )
+        if index is None:
+            return
+        node = None if index == 0 else index
+    elif mode == "story" and node is None:
+        nodes = available_story_nodes(version, str(resource_id))
+        index = _prompt_index(
+            "选择虚构节点",
+            tuple((str(item), f"节点 {item}") for item in nodes),
+            all_label="全部节点",
+        )
+        if index is None:
+            return
+        node = None if index == 0 else index
+    elif mode == "maze" and node is None:
+        nodes = available_maze_nodes(version, str(resource_id))
+        index = _prompt_index(
+            "选择混沌节点",
+            tuple((str(item), f"节点 {item}") for item in nodes),
+            all_label="全部节点",
+        )
+        if index is None:
+            return
+        node = None if index == 0 else index
+    elif mode == "knight" and node is None:
+        index = _prompt_index(
+            "选择骑士",
+            tuple((str(item), f"骑士 {item}") for item in (1, 2, 3)),
+            all_label="全部骑士",
+        )
+        if index is None:
+            return
+        node = None if index == 0 else index
+
+    query(mode, resource_id, node, verbose=verbose)
+    _pause_interactive_result()
+
+
 def _run_catalog_browser(catalog: tuple[VersionRecord, ...]) -> None:
     while True:
         console.clear()
@@ -2003,6 +2119,7 @@ def _run_tui(catalog: tuple[VersionRecord, ...]) -> None:
             (
                 ("show", "查看数据"),
                 ("diff", "比较版本差异"),
+                ("query", "全量数据查询"),
                 ("catalog", "浏览版本信息"),
             ),
         )
@@ -2012,6 +2129,8 @@ def _run_tui(catalog: tuple[VersionRecord, ...]) -> None:
             _run_show_wizard(catalog)
         elif choice == 2:
             _run_diff_wizard(catalog)
+        elif choice == 3:
+            _run_query_wizard(catalog)
         else:
             _run_catalog_browser(catalog)
 
@@ -2024,6 +2143,13 @@ def run_tui(catalog: tuple[VersionRecord, ...]) -> None:
 def _load_data() -> tuple[VersionRecord, ...]:
     try:
         return load_catalog()
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        _abort_cli(error)
+
+
+def _load_full_data() -> FullCatalog:
+    try:
+        return load_full_catalog()
     except (OSError, ValueError, json.JSONDecodeError) as error:
         _abort_cli(error)
 
@@ -2308,10 +2434,173 @@ def list_versions(
         PDF_RENDERER = previous_renderer
 
 
-@app.command("download-all")
-def download_all_command() -> None:
-    """将目录中的所有资源下载到本地 data 目录。"""
-    download_all(_load_data())
+@app.command("download")
+def download_command() -> None:
+    """同步最新版本全量数据和历史版本所需数据。"""
+    download_all(_load_data(), _load_full_data())
+
+
+@app.command("cleanup")
+def cleanup_command() -> None:
+    """删除历史版本中不再被 show 或 diff 使用的全量缓存。"""
+    removed = cleanup_data(_load_data(), _load_full_data())
+    if removed:
+        console.print(f"已清理 {len(removed)} 个历史版本的冗余数据文件。")
+    else:
+        console.print("[dim]没有可清理的历史版本冗余数据。[/dim]")
+
+
+def _render_query(
+    version: str,
+    mode: str,
+    resource_id: int,
+    node: int | None,
+    verbose: bool,
+) -> None:
+    resource = str(resource_id)
+    if mode == "character":
+        if node is not None:
+            raise ValueError("角色查询不接受节点参数。")
+        render_character(load_character(version, resource), verbose)
+        return
+    if mode == "lightcone":
+        if node is not None:
+            raise ValueError("光锥查询不接受节点参数。")
+        render_lightcone(load_lightcone(version, resource))
+        return
+    if mode == "maze":
+        nodes = (node,) if node is not None else available_maze_nodes(version, resource)
+        if not nodes:
+            raise ValueError(f"混沌数据 {resource} 中未找到节点。")
+        seen_buffs: set[tuple[str, str]] = set()
+        for index, maze_node in enumerate(nodes):
+            if index and not PDF_OUTPUT:
+                _print_markdown([""]) if MARKDOWN_OUTPUT else console.print()
+            render_maze(load_maze(version, resource, maze_node), seen_buffs)
+        return
+    if mode == "boss":
+        nodes = (node,) if node is not None else available_boss_nodes(version, resource)
+        if not nodes:
+            raise ValueError(f"末日数据 {resource} 中未找到节点。")
+        for index, boss_node in enumerate(nodes):
+            if index and not PDF_OUTPUT:
+                _print_markdown([""]) if MARKDOWN_OUTPUT else console.print()
+            render_boss(load_boss(version, resource, boss_node))
+        return
+    if mode == "story":
+        nodes = (node,) if node is not None else available_story_nodes(version, resource)
+        if not nodes:
+            raise ValueError(f"虚构数据 {resource} 中未找到节点。")
+        for index, story_node in enumerate(nodes):
+            if index and not PDF_OUTPUT:
+                _print_markdown([""]) if MARKDOWN_OUTPUT else console.print()
+            view = load_story(version, resource, story_node)
+            render_highmode(
+                view,
+                prelude_buffs=view.season_buffs if index == 0 else (),
+            )
+        return
+    if mode == "knight":
+        nodes = (node,) if node is not None else (1, 2, 3)
+        for index, knight_node in enumerate(nodes):
+            if knight_node not in (1, 2, 3):
+                raise ValueError("骑士节点必须是 1、2 或 3。")
+            if index and not PDF_OUTPUT:
+                _print_markdown([""]) if MARKDOWN_OUTPUT else console.print()
+            render_highmode(load_peak(version, resource, "knight", knight_node))
+        return
+    if mode in {"king", "hard-king"}:
+        if node is not None:
+            raise ValueError(f"{_mode_label(mode)}查询不接受节点参数。")
+        render_highmode(load_peak(version, resource, mode, None))
+        return
+    if mode == "peak":
+        if node is None:
+            sections = (
+                ("knight", 1),
+                ("knight", 2),
+                ("knight", 3),
+                ("king", None),
+                ("hard-king", None),
+            )
+        else:
+            if node > 5:
+                raise ValueError("异相节点必须是 1 到 5。")
+            peak_mode = "knight" if node <= 3 else "king" if node == 4 else "hard-king"
+            sections = ((peak_mode, node if peak_mode == "knight" else None),)
+        for index, (peak_mode, peak_node) in enumerate(sections):
+            if index and not PDF_OUTPUT:
+                _print_markdown([""]) if MARKDOWN_OUTPUT else console.print()
+            render_highmode(load_peak(version, resource, peak_mode, peak_node))
+        return
+    raise ValueError("支持的查询模式：角色、光锥、混沌、虚构、末日、异相、骑士、王棋和绝境。")
+
+
+@app.command()
+def query(
+    mode: str | None = typer.Argument(None, metavar="模式", help="查询模式。"),
+    resource_id: int | None = typer.Argument(
+        None,
+        metavar="数据ID",
+        min=1,
+        help="full.json 中的角色、光锥或关卡资源 ID。",
+    ),
+    node: int | None = typer.Argument(
+        None,
+        metavar="节点",
+        min=1,
+        help="关卡节点编号；省略时显示该资源的全部节点。",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="显示角色特殊效果。"),
+    markdown: bool = typer.Option(False, "--markdown", help="以 Markdown 格式输出。"),
+    pdf: bool = typer.Option(False, "--pdf", help="以 PDF 格式输出到标准输出，请使用 > 保存文件。"),
+) -> None:
+    """按 full.json 中的真实数据 ID 查询最新版本资源。"""
+    global MARKDOWN_OUTPUT, PDF_OUTPUT, PDF_RENDERER
+    catalog = _load_data()
+    if mode is None or resource_id is None:
+        if not sys.stdin.isatty():
+            _abort_cli("query 缺少参数；请提供模式和数据 ID。")
+        if markdown or pdf:
+            option = "--markdown" if markdown else "--pdf"
+            _abort_cli(f"{option} 不能用于交互式向导，请补全 query 参数。")
+        try:
+            with _terminal_output():
+                _run_query_wizard(catalog, mode, resource_id, node, verbose)
+        except (KeyError, OSError, ValueError, json.JSONDecodeError, TypeError) as error:
+            _abort_cli(error)
+        return
+    if markdown and pdf:
+        _abort_cli("--markdown 和 --pdf 不能同时使用。")
+    if pdf and sys.stdout.isatty():
+        _abort_cli("--pdf 输出的是二进制数据，请使用 hvi query ... --pdf > query.pdf。")
+
+    previous_markdown = MARKDOWN_OUTPUT
+    previous_pdf = PDF_OUTPUT
+    previous_renderer = PDF_RENDERER
+    MARKDOWN_OUTPUT = markdown
+    PDF_OUTPUT = pdf
+    PDF_RENDERER = PdfRenderer() if pdf else None
+    try:
+        mode = mode.lower()
+        resource_mode = _query_resource_mode(mode)
+        full_catalog = _load_full_data()
+        if mode not in {value for value, _ in _query_mode_options()}:
+            raise ValueError(f"不支持的查询模式 {mode!r}。")
+        if not full_catalog.contains(resource_mode, resource_id):
+            raise ValueError(
+                f"{_mode_label(resource_mode)}数据 ID {resource_id} 不在 full.json 中。"
+            )
+        version = latest_release(catalog)
+        _render_query(version, mode, resource_id, node, verbose)
+        if pdf:
+            _write_pdf()
+    except (KeyError, OSError, ValueError, json.JSONDecodeError, TypeError) as error:
+        _abort_cli(f"{error} 请先运行 hvi download。")
+    finally:
+        MARKDOWN_OUTPUT = previous_markdown
+        PDF_OUTPUT = previous_pdf
+        PDF_RENDERER = previous_renderer
 
 
 @app.command()

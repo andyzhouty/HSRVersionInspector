@@ -6,10 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .paths import DATA_DIR
 from .scaling import EnemyScaling, calculate_hp, load_enemy_scaling
-
-
-DATA_DIR = Path("data")
 
 
 @dataclass(frozen=True)

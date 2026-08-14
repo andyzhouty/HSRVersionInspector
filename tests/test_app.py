@@ -6,7 +6,7 @@ from unittest.mock import patch
 from rich.console import Console
 
 from hsr_version_inspector.boss import BossBuff
-from hsr_version_inspector.data import VersionRecord
+from hsr_version_inspector.data import FullCatalog, VersionRecord
 from hsr_version_inspector.diff import HighModeChange, HighModeDiffReport, HighModeSectionDiff
 from hsr_version_inspector.highmode import HighModeEnemy, HighModeView, HighModeWave
 
@@ -247,6 +247,116 @@ class AppTests(unittest.TestCase):
 
         show_all.assert_called_once_with("4.4.54", record, False)
         diff_all.assert_called_once_with("4.4.51", "4.4.54", record, record, False)
+
+    def test_show_keeps_legacy_array_index_lookup(self) -> None:
+        record = VersionRecord(
+            name="4.4",
+            versions=("4.4.54",),
+            character=("1512",),
+            lightcone=(),
+            maze="",
+            story="",
+            boss="",
+            peak="",
+        )
+        with patch.object(app_module, "_load_data", return_value=(record,)), patch.object(
+            app_module, "load_character", return_value="角色"
+        ) as load_character, patch.object(app_module, "render_character") as render_character:
+            app_module.show(
+                "4.4.54",
+                "character",
+                1,
+                verbose=False,
+                markdown=False,
+                pdf=False,
+            )
+
+        load_character.assert_called_once_with("4.4.54", "1512")
+        render_character.assert_called_once_with("角色", False)
+
+    def test_query_uses_full_catalog_resource_id(self) -> None:
+        record = VersionRecord(
+            name="4.4",
+            versions=("4.4.54",),
+            character=(),
+            lightcone=(),
+            maze="",
+            story="",
+            boss="",
+            peak="",
+        )
+        full_catalog = FullCatalog(
+            character=("1512",),
+            lightcone=(),
+            maze=(),
+            story=(),
+            boss=(),
+            peak=(),
+        )
+        with patch.object(app_module, "_load_data", return_value=(record,)), patch.object(
+            app_module, "_load_full_data", return_value=full_catalog
+        ), patch.object(app_module, "load_character", return_value="角色") as load_character, patch.object(
+            app_module, "render_character"
+        ) as render_character:
+            app_module.query(
+                "character",
+                1512,
+                None,
+                verbose=False,
+                markdown=False,
+                pdf=False,
+            )
+
+        load_character.assert_called_once_with("4.4.54", "1512")
+        render_character.assert_called_once_with("角色", False)
+
+    def test_query_wizard_uses_latest_version_after_mode_and_id(self) -> None:
+        record = VersionRecord(
+            name="4.4",
+            versions=("4.4.9", "4.4.10"),
+            character=(),
+            lightcone=(),
+            maze="",
+            story="",
+            boss="",
+            peak="",
+        )
+        full_catalog = FullCatalog(
+            character=("1512",),
+            lightcone=(),
+            maze=(),
+            story=(),
+            boss=(),
+            peak=(),
+        )
+        steps: list[str] = []
+
+        def prompt_index(title, *_args, **_kwargs):
+            steps.append(title)
+            return 1
+
+        def prompt_resource_id(catalog, mode):
+            self.assertEqual(catalog, full_catalog)
+            self.assertEqual(mode, "character")
+            steps.append("输入数据 ID")
+            return 1512
+
+        with patch.object(app_module, "_load_full_data", return_value=full_catalog), patch.object(
+            app_module, "_prompt_index", side_effect=prompt_index
+        ), patch.object(
+            app_module, "_prompt_full_resource_id", side_effect=prompt_resource_id
+        ), patch.object(app_module, "query") as query, patch.object(
+            app_module, "_pause_interactive_result"
+        ), patch.object(
+            app_module.console, "print"
+        ):
+            app_module._run_query_wizard((record,))
+
+        self.assertEqual(
+            steps,
+            ["选择查询模式", "输入数据 ID", "是否显示特殊效果"],
+        )
+        query.assert_called_once_with("character", 1512, None, verbose=False)
 
 
 if __name__ == "__main__":

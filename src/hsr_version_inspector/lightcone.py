@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .paths import DATA_DIR
 
-DATA_DIR = Path("data")
 PLACEHOLDER = re.compile(r"#(\d+)\[(i|f(\d+))\](%)?")
 TAG = re.compile(r"</?[^>]+>")
 PATH_NAMES = {

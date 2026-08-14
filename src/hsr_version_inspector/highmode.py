@@ -8,10 +8,9 @@ import re
 from typing import Any
 
 from .boss import BossBuff, _load_json, _load_monster, format_effect
+from .paths import DATA_DIR
 from .scaling import calculate_hp, load_enemy_scaling
 
-
-DATA_DIR = Path("data")
 IGNORED_MONSTER_IDS = frozenset({8003060})
 
 
