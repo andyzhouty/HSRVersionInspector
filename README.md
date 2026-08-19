@@ -121,17 +121,26 @@ Windows 或 macOS 使用对应的应用数据目录。如需指定其他位置�
 
 ```bash
 uv run tests
+uv run ruff check src tests
 ```
 
 ## 项目结构
 
-- `src/hsr_version_inspector/app.py`：Typer 命令和 Rich 终端界面。
+- `src/hsr_version_inspector/app.py`：Typer app、公共渲染入口、输出状态和兼容导出。
+- `src/hsr_version_inspector/cli.py`：组装 Typer app，并调用各命令模块完成注册。
+- `src/hsr_version_inspector/navigation.py`：交互式导航、选择器和命令向导。
+- `src/hsr_version_inspector/commands/`：各命令的注册、参数处理、资源路由和批量渲染编排。
+- `src/hsr_version_inspector/output/`：公共标签、文本转换、差异标记和语义输出模型。
+- `src/hsr_version_inspector/render/`：终端和 Markdown 渲染器。
+- `src/hsr_version_inspector/pdf/`：保持 `PdfRenderer` 公共入口，包含 PDF 基础组件、展示和差异渲染。
 - `src/hsr_version_inspector/boss.py`：首领选择、生命值计算和效果格式化。
 - `src/hsr_version_inspector/character.py`：角色技能、行迹、效果和星魂解析。
 - `src/hsr_version_inspector/lightcone.py`：光锥属性和叠影数据解析。
-- `src/hsr_version_inspector/highmode.py`：异相、虚构等高难度数据解析及生命值计算。
+- `src/hsr_version_inspector/highmode/`：异相、虚构等高难度数据解析、敌人组装及视图模型。
 - `src/hsr_version_inspector/scaling.py`：敌人生命值倍率表加载和计算公式。
 - `src/hsr_version_inspector/data.py`：JSON 目录加载和校验。
-- `src/hsr_version_inspector/download.py`：资源 URL 生成和下载。
+- `src/hsr_version_inspector/download/`：下载模型、目标发现和 HTTP 传输；兼容入口保留在包内。
+- `src/hsr_version_inspector/commands/download.py`：并发执行、清理和下载结果汇总。
+- `src/hsr_version_inspector/diff/`：差异比较兼容入口、模型、统一分词和各领域比较实现。
 - `versionID.json`：默认版本元数据目录。
 - `full.json`：`query` 和 `download` 使用的完整资源 ID 目录。

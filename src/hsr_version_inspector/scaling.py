@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 CONFIG_DIR_NAME = "config"
 HARD_LEVEL_FILE = "HardLevelGroup.json"
 ELITE_FILE = "EliteGroup.json"

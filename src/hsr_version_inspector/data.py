@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 PACKAGE_DATA_FILE = Path(__file__).with_name("versionID.json")
 PACKAGE_FULL_DATA_FILE = Path(__file__).with_name("full.json")
 DATA_FILE = Path("versionID.json")

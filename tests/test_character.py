@@ -13,7 +13,11 @@ from hsr_version_inspector.app import (
     _shared_text_markup,
     render_character,
 )
-from hsr_version_inspector.character import _load_traces, group_skill_entries, load_character
+from hsr_version_inspector.character import (
+    _load_traces,
+    group_skill_entries,
+    load_character,
+)
 
 
 class CharacterTests(unittest.TestCase):
@@ -202,6 +206,7 @@ class CharacterTests(unittest.TestCase):
 
         self.assertEqual(view.level, 80)
         self.assertEqual(view.path, "同谐")
+        assert view.base_stats is not None
         self.assertEqual(
             (view.base_stats.hp, view.base_stats.attack, view.base_stats.defence, view.base_stats.speed),
             ("1203.05", "601.52", "485.10", "98"),

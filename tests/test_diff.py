@@ -5,24 +5,25 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
+from helpers import write_scaling_config
+
 from hsr_version_inspector.boss import BossBuff, BossView
 from hsr_version_inspector.data import VersionRecord
 from hsr_version_inspector.diff import (
     CharacterChange,
+    character_change_subject,
     compare_all_boss_versions,
     compare_all_maze_versions,
+    compare_all_story_versions,
     compare_boss_versions,
     compare_character_versions,
     compare_highmode_versions,
-    compare_all_story_versions,
     compare_lightcone_versions,
     compare_versions,
-    character_change_subject,
     tokenize_refinement_diff,
     tokenize_text_diff,
     validate_request,
 )
-from helpers import write_scaling_config
 
 
 def _record(name: str = "4.4") -> VersionRecord:
@@ -454,8 +455,8 @@ class DiffTests(unittest.TestCase):
         self.assertIn("effects", {change.category for change in changes})
         hp_change = next(change for change in changes if change.category == "hp")
         self.assertEqual(hp_change.label, "Wave 1: Test enemy")
-        self.assertIn("18,826", hp_change.before)
-        self.assertIn("22,592", hp_change.after)
+        self.assertIn("18,826", hp_change.before or "")
+        self.assertIn("22,592", hp_change.after or "")
 
     def test_story_diff_without_node_compares_all_story_nodes(self) -> None:
         record = _record()

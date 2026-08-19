@@ -222,3 +222,6 @@ __marimo__/
 
 # export files
 *.pdf
+
+# Local planning notes
+plan.md

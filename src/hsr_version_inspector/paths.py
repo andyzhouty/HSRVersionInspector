@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 from typing import Mapping
 
-
 DATA_DIR_ENV = "HVI_DATA_DIR"
 APPLICATION_NAME = "hsr-version-inspector"
 

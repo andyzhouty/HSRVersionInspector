@@ -3,6 +3,7 @@ import unittest
 from io import StringIO
 from pathlib import Path
 from threading import Barrier
+from typing import Any
 from unittest.mock import patch
 
 from rich.console import Console
@@ -59,7 +60,7 @@ class DownloadTests(unittest.TestCase):
     def test_download_target_mirrors_remote_path(self) -> None:
         target = DownloadTarget("4.4.54", "story", "2026")
 
-        def fake_open(request: object, timeout: int) -> _FakeResponse:
+        def fake_open(request: Any, timeout: int) -> _FakeResponse:
             self.assertEqual(
                 request.full_url,
                 "https://static.nanoka.cc/hsr/4.4.54/zh/story/2026.json",

@@ -3,6 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from helpers import write_scaling_config
+
 from hsr_version_inspector.highmode import (
     available_maze_nodes,
     available_story_nodes,
@@ -10,7 +12,6 @@ from hsr_version_inspector.highmode import (
     load_peak,
     load_story,
 )
-from helpers import write_scaling_config
 
 
 class HighModeTests(unittest.TestCase):

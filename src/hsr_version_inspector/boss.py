@@ -104,10 +104,15 @@ def _phase_ids(level: dict[str, Any], node: int) -> tuple[int, ...]:
 
 
 def _stage_level(level: dict[str, Any], node: int) -> int:
-    event_key = f"event_id_list{node}"
-    events = level.get(event_key) or level.get("event_id_list") or []
-    values = [event.get("level", 0) for event in events if isinstance(event, dict)]
+    values = [event.get("level", 0) for event in _event_list(level, node)]
     return max((int(value) for value in values), default=0)
+
+
+def _event_list(level: dict[str, Any], node: int) -> list[dict[str, Any]]:
+    events: Any = level.get(f"event_id_list{node}")
+    if not isinstance(events, list) or not events:
+        events = level.get("event_id_list") if node in (1, 3) else []
+    return [item for item in events if isinstance(item, dict)]
 
 
 def _format_number(value: Any) -> str:
@@ -199,10 +204,7 @@ def _previous_elite_ratio(
             level_data = _highest_difficulty_level(payload, node)
             phase_ids = _phase_ids(level_data, node)
             stage = _stage_level(level_data, node)
-            events = level_data.get(f"event_id_list{node}")
-            if not isinstance(events, list) or not events:
-                events = level_data.get("event_id_list") if node in (1, 3) else []
-            event = next((item for item in events if isinstance(item, dict)), {})
+            event = next(iter(_event_list(level_data, node)), {})
             group = int(event.get("elite_group", 0))
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
             continue
@@ -240,10 +242,7 @@ def load_boss(
         {},
     )
     hp_ratio = float(child.get("hp_modify_ratio", 1))
-    events = level_data.get(f"event_id_list{node}")
-    if not isinstance(events, list) or not events:
-        events = level_data.get("event_id_list") if node in (1, 3) else []
-    event = next((item for item in events if isinstance(item, dict)), {})
+    event = next(iter(_event_list(level_data, node)), {})
     hard_level_group = int(event.get("hard_level_group", child.get("hard_level_group", 1)))
     elite_group = event.get("elite_group", child.get("elite_group", 1))
     scaling = load_enemy_scaling(data_root)

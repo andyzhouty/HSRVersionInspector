@@ -3,8 +3,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from hsr_version_inspector.boss import available_boss_nodes, load_boss
 from helpers import write_scaling_config
+
+from hsr_version_inspector.boss import available_boss_nodes, load_boss
 
 
 class BossTests(unittest.TestCase):

@@ -1,5 +1,5 @@
-import unittest
 import importlib
+import unittest
 from io import StringIO
 from unittest.mock import patch
 
@@ -7,9 +7,12 @@ from rich.console import Console
 
 from hsr_version_inspector.boss import BossBuff
 from hsr_version_inspector.data import FullCatalog, VersionRecord
-from hsr_version_inspector.diff import HighModeChange, HighModeDiffReport, HighModeSectionDiff
+from hsr_version_inspector.diff import (
+    HighModeChange,
+    HighModeDiffReport,
+    HighModeSectionDiff,
+)
 from hsr_version_inspector.highmode import HighModeEnemy, HighModeView, HighModeWave
-
 
 app_module = importlib.import_module("hsr_version_inspector.app")
 

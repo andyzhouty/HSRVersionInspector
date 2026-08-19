@@ -14,10 +14,19 @@ from hsr_version_inspector.diff import (
 )
 from hsr_version_inspector.highmode import HighModeEnemy, HighModeView, HighModeWave
 from hsr_version_inspector.lightcone import LightConeView
-from hsr_version_inspector.pdf import PdfRenderer, SYMBOL_FONT, _enemy_count_text, _symbol_font_text
+from hsr_version_inspector.pdf import (
+    SYMBOL_FONT,
+    PdfRenderer,
+    _enemy_count_text,
+    _symbol_font_text,
+)
 
 
 class PdfTests(unittest.TestCase):
+    @staticmethod
+    def _cellvalues(table: Table) -> list[list[object]]:
+        return getattr(table, "_cellvalues")
+
     def test_pdf_styles_have_distinct_text_hierarchy(self) -> None:
         renderer = PdfRenderer()
 
@@ -55,7 +64,7 @@ class PdfTests(unittest.TestCase):
 
         table = next(item for item in renderer.story if isinstance(item, Table))
         self.assertEqual(table.splitByRow, 1)
-        self.assertIsInstance(table._cellvalues[2][0], HRFlowable)
+        self.assertIsInstance(self._cellvalues(table)[2][0], HRFlowable)
 
     def test_highmode_nodes_have_extra_pdf_spacing(self) -> None:
         renderer = PdfRenderer()
@@ -125,9 +134,10 @@ class PdfTests(unittest.TestCase):
             [("等级", "85级"), ("推荐属性", "物理、虚数")],
         )
 
-        self.assertEqual(len(table._cellvalues), 2)
-        self.assertEqual(len(table._cellvalues[0]), 2)
-        self.assertEqual(len(table._cellvalues[1]), 2)
+        cellvalues = self._cellvalues(table)
+        self.assertEqual(len(cellvalues), 2)
+        self.assertEqual(len(cellvalues[0]), 2)
+        self.assertEqual(len(cellvalues[1]), 2)
 
     def test_enemy_table_can_omit_column_headers(self) -> None:
         renderer = PdfRenderer()
@@ -138,7 +148,7 @@ class PdfTests(unittest.TestCase):
             [100, 50, 100],
         )
 
-        self.assertEqual(len(table._cellvalues), 1)
+        self.assertEqual(len(self._cellvalues(table)), 1)
         self.assertEqual(table.repeatRows, 0)
 
     def test_diff_tables_omit_column_headers(self) -> None:
@@ -149,9 +159,9 @@ class PdfTests(unittest.TestCase):
             ("刚毅", "新增", "描述"),
         ])
 
-        self.assertEqual(len(change_table._cellvalues), 1)
+        self.assertEqual(len(self._cellvalues(change_table)), 1)
         self.assertEqual(change_table.repeatRows, 0)
-        self.assertEqual(len(status_table._cellvalues), 1)
+        self.assertEqual(len(self._cellvalues(status_table)), 1)
         self.assertEqual(status_table.repeatRows, 0)
 
     def test_diff_overview_records_names_and_node_numbers(self) -> None:
@@ -160,7 +170,6 @@ class PdfTests(unittest.TestCase):
             CharacterDiffReport(
                 "4.4.51",
                 "4.4.54",
-                1,
                 "1512",
                 "1512",
                 "角色一",

@@ -16,10 +16,13 @@ dependencies = [
 hvi = "hsr_version_inspector:main"
 
 [dependency-groups]
-dev = ["hsr-version-inspector-test-runner"]
+dev = ["hsr-version-inspector-test-runner", "ruff>=0.12.0"]
 
 [tool.uv.sources]
 hsr-version-inspector-test-runner = { path = "tools/test-runner" }
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
 
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]
