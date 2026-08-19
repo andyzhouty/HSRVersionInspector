@@ -8,6 +8,7 @@ from typing import Any
 
 from ..character import CharacterView, load_character
 from ..data import VersionRecord
+from ..mappings import BASE_STAT_ORDER
 from ..paths import DATA_DIR
 from .common import resource_ids, validate_request
 from .models import (
@@ -16,13 +17,6 @@ from .models import (
     CharacterSectionDiff,
 )
 
-BASE_STAT_ORDER = {
-    "命途": -1,
-    "生命值": 0,
-    "攻击力": 1,
-    "防御力": 2,
-    "速度": 3,
-}
 CHARACTER_SKILL_LABEL = re.compile(r"^(?P<type>.+?) \d+级 · (?P<name>.+)$")
 
 

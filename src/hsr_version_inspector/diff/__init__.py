@@ -12,6 +12,7 @@ from pathlib import Path
 
 from ..boss import available_boss_nodes, load_boss
 from ..data import VersionRecord
+from ..mappings import BASE_STAT_ORDER
 from ..paths import DATA_DIR
 from .character import (
     compare_all_character_versions,
@@ -65,13 +66,6 @@ from .tokenize import (
     tokenize_text_diff,
 )
 
-BASE_STAT_ORDER = {
-    "命途": -1,
-    "生命值": 0,
-    "攻击力": 1,
-    "防御力": 2,
-    "速度": 3,
-}
 CHARACTER_SKILL_LABEL = re.compile(r"^(?P<type>.+?) \d+级 · (?P<name>.+)$")
 
 

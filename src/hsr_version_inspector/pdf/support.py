@@ -16,6 +16,7 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import Paragraph
 
+from ..mappings import ELEMENT_LABELS, MODE_LABELS, SECTION_LABELS
 from ..output.diff_markup import (
     lightcone_text_markup as _lightcone_text_markup,
 )
@@ -28,7 +29,6 @@ from ..output.diff_markup import (
 from ..output.diff_markup import (
     shared_text_markup as _shared_text_markup,
 )
-from ..output.labels import ELEMENT_LABELS, MODE_LABELS
 
 PAGE_WIDTH = A4[0]
 MARGIN = 16 * mm
@@ -37,13 +37,6 @@ FONT_BOLD = "HviCjkBold"
 SYMBOL_FONT = "HviSymbols"
 NUMBER_TOKEN = re.compile(r"\d[\d,]*(?:\.\d+)?%?|[^\d]")
 RICH_TAG = re.compile(r"\[(/?)(red strike|red|green|white|yellow|cyan|bold)\]")
-SECTION_LABELS = {
-    "Knight 1": "骑士 1",
-    "Knight 2": "骑士 2",
-    "Knight 3": "骑士 3",
-    "King": "王棋",
-    "Hard-king": "绝境",
-}
 CYAN = colors.HexColor("#1877a8")
 MAGENTA = colors.HexColor("#8e44ad")
 YELLOW = colors.HexColor("#c27c0e")

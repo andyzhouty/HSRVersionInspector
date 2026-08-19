@@ -7,23 +7,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .mappings import PATH_NAMES
 from .paths import DATA_DIR
 
 PLACEHOLDER = re.compile(r"#(\d+)\[(i|f(\d+))\](%)?")
 TAG = re.compile(r"</?[^>]+>")
-PATH_NAMES = {
-    "Memory": "记忆",
-    "Elation": "欢愉",
-    "Rogue": "巡猎",
-    "Mage": "智识",
-    "Warrior": "毁灭",
-    "Knight": "存护",
-    "Warlock": "虚无",
-    "Priest": "丰饶",
-    "Shaman": "同谐",
-}
-
-
 @dataclass(frozen=True)
 class LightConeView:
     version: str

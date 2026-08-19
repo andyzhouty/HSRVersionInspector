@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .lightcone import PATH_NAMES
+from .mappings import PATH_NAMES
 from .paths import DATA_DIR
 
 _PLACEHOLDER = re.compile(r"#(\d+)\[(i|f(\d+))\](%)?")
